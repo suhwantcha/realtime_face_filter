@@ -32,6 +32,30 @@ When the webcam stream starts, each frame goes through the following process:
     3. If the distance is below a certain threshold, the track ID is marked as `'recognized'`; otherwise, it's marked as `'unrecognized'`.
 - For every subsequent frame, the system simply looks up the track ID. If the ID is marked as `'unrecognized'`, a Gaussian blur is applied to the face's bounding box. This is highly efficient as the expensive recognition step is only performed once per person.
 
+## Advanced Concepts
+
+### High-Performance I/O with Multithreading
+
+A common bottleneck in real-time video processing is the mismatch in speed between reading frames from a camera (I/O-bound) and processing each frame with a neural network (CPU/GPU-bound). To solve this, the application implements a `FrameBuffer` class that uses a multithreaded producer-consumer pattern.
+
+-   **Producer Thread**: A dedicated background thread continuously reads frames from the webcam as fast as possible and places them into a fixed-size queue (`queue.Queue`).
+-   **Consumer Thread**: The main processing loop requests a frame from the queue.
+-   **Optimized Queuing**: If the processing is slow and the queue becomes full, the producer thread does not wait. Instead, it uses a non-blocking `put_nowait()` and discards the frame if the queue is full. This ensures that the main loop always gets the most recent frame available, preventing lag and keeping the video feed truly "real-time".
+
+## Directory Structure
+
+```
+.
+├── main.py                   # Main FastAPI application, handles web server and video streaming.
+├── insightface_utils.py      # Helper functions for InsightFace model loading and inference.
+├── recognition_utils.py      # Functions for saving/loading embeddings and comparing faces.
+├── face_blur_utils.py        # Contains the function for applying a blur effect to face regions.
+├── index.html                # The single-page HTML frontend for the user interface.
+├── requirements.txt          # A list of all Python dependencies for the project.
+├── registered_face.npy       # Stores the facial embedding of the registered "protected" person.
+└── README.md                 # This file.
+```
+
 ## Setup and Installation
 
 1.  **Prerequisites:**
