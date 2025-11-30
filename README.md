@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Real-time Face Privacy Filter
 
 A web-based application that provides real-time privacy for faces in a webcam stream. The system detects all faces, recognizes a pre-registered "protected" face, and applies a blur filter to all other faces, ensuring their privacy.
@@ -91,3 +92,6 @@ A common bottleneck in real-time video processing is the mismatch in speed betwe
 3.  **Use the Application:**
     *   **Step 1:** Upload a photo to register the "protected" face.
     *   **Step 2:** Click "Start Webcam" to begin the real-time privacy filter.
+=======
+# realtime_face_filter
+>>>>>>> dcd087827ac8a3e76ae351fcf6a27df1df6a0e6c
