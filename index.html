@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>실시간 얼굴 프라이버시 필터</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h1, h2, h3 {
+            color: #4a4a4a;
+            margin-bottom: 0.5rem;
+        }
+        p {
+            color: #666;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+        .form-container, .source-selector {
+            margin-bottom: 2rem;
+            border: 1px dashed #ccc;
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+        .video-container {
+            margin-top: 1rem;
+            margin-left: auto;
+            margin-right: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #000;
+            min-height: 480px; /* Placeholder height */
+            width: 100%;
+            max-width: 720px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+        #video_feed {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .file-label, .choice-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: inline-block;
+            border: none;
+            font-size: 1rem;
+            margin: 0 10px;
+        }
+        .file-label:hover, .choice-btn:hover {
+            background-color: #0056b3;
+        }
+        .file-name-display {
+            margin-top: 10px;
+            font-style: italic;
+            color: #555;
+            min-height: 18px;
+        }
+        button {
+            margin-top: 1rem;
+            padding: 10px 25px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        button:hover:not(:disabled) {
+            background-color: #218838;
+        }
+        .status-message {
+            margin-top: 1.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            min-height: 20px;
+        }
+        .status-success { color: #28a745; }
+        .status-error { color: #dc3545; }
+        .note { font-size: 0.85rem; color: #888; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>실시간 얼굴 프라이버시 필터</h1>
+        <p>등록된 얼굴을 제외한 모든 얼굴을 프라이버시 필터로 보호합니다.</p>
+
+        <div class="form-container">
+            <h2>1단계: 얼굴 등록</h2>
+            <p style="font-size: 0.9rem; margin-bottom: 1rem;">보호할 인물의 정면 사진을 업로드하세요.</p>
+            <form id="register-form">
+                <label for="register-file-upload" class="file-label">등록 사진 선택</label>
+                <input id="register-file-upload" type="file" accept="image/*" required>
+                <div class="file-name-display" id="register-file-name">선택된 파일 없음</div>
+                <button type="submit" id="register-submit-btn" disabled>등록하기</button>
+            </form>
+            <div class="status-message" id="register-status"></div>
+        </div>
+
+        <div class="source-selector">
+            <h2>2단계: 웹캠 시작</h2>
+            <button id="start-webcam" class="choice-btn">웹캠 시작</button>
+        </div>
+        
+        <div class="video-container" id="video-container-id">
+            <span id="video-placeholder">영상 소스를 선택하세요</span>
+            <img id="video_feed" alt="Video Stream" style="display: none;">
+        </div>
+    </div>
+
+    <script>
+        const registerForm = document.getElementById('register-form');
+        const registerFileInput = document.getElementById('register-file-upload');
+        const registerFileNameDisplay = document.getElementById('register-file-name');
+        const registerSubmitBtn = document.getElementById('register-submit-btn');
+        const registerStatusDiv = document.getElementById('register-status');
+        
+        const videoFeed = document.getElementById('video_feed');
+        const videoPlaceholder = document.getElementById('video-placeholder');
+
+        const startWebcamBtn = document.getElementById('start-webcam');
+
+        // --- Registration Logic ---
+        registerFileInput.addEventListener('change', () => {
+            if (registerFileInput.files.length > 0) {
+                registerFileNameDisplay.textContent = registerFileInput.files[0].name;
+                registerSubmitBtn.disabled = false;
+            } else {
+                registerFileNameDisplay.textContent = '선택된 파일 없음';
+                registerSubmitBtn.disabled = true;
+            }
+        });
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            registerStatusDiv.textContent = '등록 중...';
+            registerStatusDiv.className = 'status-message';
+            registerSubmitBtn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('file', registerFileInput.files[0]);
+
+            try {
+                const response = await fetch('/register', { method: 'POST', body: formData });
+                if (response.ok) {
+                    const result = await response.json();
+                    registerStatusDiv.textContent = result.message + " (이제 영상 소스를 선택하세요)";
+                    registerStatusDiv.className = 'status-message status-success';
+                } else {
+                    const errorText = await response.text();
+                    registerStatusDiv.textContent = `오류: ${errorText}`;
+                    registerStatusDiv.className = 'status-message status-error';
+                }
+            } catch (error) {
+                registerStatusDiv.textContent = `네트워크 오류: ${error.message}`;
+                registerStatusDiv.className = 'status-message status-error';
+            } finally {
+                registerSubmitBtn.disabled = false;
+            }
+        });
+
+        // --- Video Source Selection Logic ---
+        function startStream(sourceUrl) {
+            videoPlaceholder.style.display = 'none';
+            videoFeed.src = sourceUrl + '?' + new Date().getTime(); // Add timestamp to force reload
+            videoFeed.style.display = 'block';
+        }
+
+        startWebcamBtn.addEventListener('click', () => {
+            startStream('/video_feed_webcam');
+        });
+    </script>
+
+</body>
+</html>

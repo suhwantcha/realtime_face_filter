@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*build/
+*develop-eggs/
+*dist/
+*downloads/
+*eggs/
+*.eggs/
+*lib/
+*lib64/
+*parts/
+*sdist/
+*var/
+*wheels/
+*share/python-wheels/
+*.egg-info/
+*htmlcov/
+*.egg
+/proj_venv/
+
+# Project-specific
+registered_face.npy
+temp_output/
+.vscode/
