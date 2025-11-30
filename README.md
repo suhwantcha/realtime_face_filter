@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Real-time Face Privacy Filter
 
 A web-based application that provides real-time privacy for faces in a webcam stream. The system detects all faces, recognizes a pre-registered "protected" face, and applies a blur filter to all other faces, ensuring their privacy.
@@ -61,7 +60,7 @@ A common bottleneck in real-time video processing is the mismatch in speed betwe
 
 1.  **Prerequisites:**
     *   Python 3.8+
-    *   NVIDIA GPU with CUDA and cuDNN installed (for GPU-accelerated performance). The application can run on a CPU, but performance will be significantly slower.
+    *   (Optional) NVIDIA GPU with CUDA and cuDNN installed for GPU-accelerated performance. If a GPU is available, ensure `onnxruntime-gpu` is installed. Otherwise, the application will run on CPU with `onnxruntime` (installed via `requirements.txt`), which will be significantly slower.
 
 2.  **Clone the repository:**
     ```bash
@@ -73,11 +72,7 @@ A common bottleneck in real-time video processing is the mismatch in speed betwe
     ```bash
     pip install -r requirements.txt
     ```
-    If you have a compatible GPU, ensure you install the GPU version of ONNX Runtime:
-    ```bash
-    pip uninstall -y onnxruntime
-    pip install onnxruntime-gpu
-    ```
+    *(Note: `requirements.txt` includes `onnxruntime-gpu`. If you do not have a GPU, `pip` will fall back to the CPU version of `onnxruntime`.)*
 
 ## How to Run
 
@@ -92,6 +87,4 @@ A common bottleneck in real-time video processing is the mismatch in speed betwe
 3.  **Use the Application:**
     *   **Step 1:** Upload a photo to register the "protected" face.
     *   **Step 2:** Click "Start Webcam" to begin the real-time privacy filter.
-=======
-# realtime_face_filter
->>>>>>> dcd087827ac8a3e76ae351fcf6a27df1df6a0e6c
+
